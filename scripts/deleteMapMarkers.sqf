@@ -5,16 +5,6 @@ if (SC_occupyLootCratesMarkers) then
 
 	for "_i" from 1 to SC_numberofLootCrates do
 	{
-<<<<<<< HEAD
-		if( (_x find '_USER_DEFINED' > -1) OR (markerShape _x == 'POLYLINE'))then 
-		{
-			deleteMarker _x;
-		} 
-	} forEach allMapMarkers;	
-	
-	
-};
-=======
 		_markerName = format ["loot_marker_%1", _i];
 		_pos = getMarkerPos _markerName;
 		
@@ -31,4 +21,3 @@ if (SC_occupyLootCratesMarkers) then
 		};
 	};						
 };
->>>>>>> refs/remotes/origin/development
