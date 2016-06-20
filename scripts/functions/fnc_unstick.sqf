@@ -75,7 +75,7 @@ if(count(crew _vehicle) > 0)then
                 
                 _GroupLeader = leader (group _vehicle); 
                 _GroupLeader doMove _originalSpawnLocation;
-                [_group, _originalSpawnLocation, 2000] call bis_fnc_taskPatrol;
+                [_group2, _originalSpawnLocation, 2000] call bis_fnc_taskPatrol;
                 _group2 setBehaviour "AWARE";
                 _group2 setCombatMode "RED"; 
 
