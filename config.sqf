@@ -154,8 +154,25 @@ SC_blackListedAreas         =   [
 
 
 SC_occupyHeliCrashes		= true;					// true if you want to have Dayz style helicrashes
-SC_numberofHeliCrashesFire  = true;                 // true if you want the crash on fire, false if you just want smoke
+SC_HeliCrashesSmoke			= false;                // true if you want smoke, false if not
+SC_numberofHeliCrashesFire  = true;                 // true if you ALSO want the crash on fire, false if you just want smoke. Needs SC_HeliCrashesSmoke set to true
 SC_numberofHeliCrashes      = 5;                    // if SC_occupyHeliCrashes = true spawn this many loot crates (overrided below for Namalsk)
+
+// Array of wrecks which can be used at heli crashes
+SC_HeliCrashClassToUse 		    =   [ 
+								"Land_UWreck_MV22_F",
+								"Land_Wreck_BRDM2_F",
+								"Land_Wreck_Car2_F",
+								"Land_Wreck_Car3_F",
+								"Land_Wreck_Car_F",
+								"Land_Wreck_Commanche_F",
+								"Land_Wreck_Offroad2_F",
+								"Land_Wreck_Offroad_F",
+								"Land_Wreck_Traw2_F",
+								"Land_Wreck_Traw_F",
+								"Land_Wreck_Truck_dropside_F",
+								"Land_Wreck_Truck_F"
+								];
 
 // Array of possible common items to go in heli crash crates ["classname",fixed amount,random amount] NOT INCLUDING WEAPONS
 // ["HandGrenade",0,2] this example would add between 0 and 2 HandGrenade to the crate (fixed 0 plus 0-2 random)
