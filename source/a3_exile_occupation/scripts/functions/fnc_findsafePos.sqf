@@ -17,7 +17,7 @@ if (worldName == 'Esseker') then
 
 if (worldName == 'Chernarus') then 
 { 
-	_maxDist = _middle - 1500;;
+	_maxDist = _middle - 1500;
 };
 
 if(_roadSpawn) then
