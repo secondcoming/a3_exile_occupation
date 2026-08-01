@@ -284,7 +284,7 @@ _aiActive = { !isPlayer _x } count allunits;
 
 if(!SC_randomSpawnIgnoreCount) then
 {
-	if(_aiActive > _maxAIcount) exitWith 
+	if(_aiActive >= _maxAIcount) exitWith
 	{ 
 		if(SC_extendedLogging) then 
 		{ 
@@ -414,6 +414,13 @@ _livePlayers = _livePlayers call ExileClient_util_array_shuffle; // But Exile ca
 		}
 		else
 		{
+			_groupSize = random [SC_randomSpawnMinGroupSize, SC_randomSpawnMinGroupSize+(SC_randomSpawnMaxGroupSize-SC_randomSpawnMinGroupSize)/2, SC_randomSpawnMaxGroupSize];
+			if (!SC_randomSpawnIgnoreCount) then
+			{
+				_groupSize = _groupSize min ((_maxAIcount - ({ !isPlayer _x } count allUnits)) max 0);
+			};
+			if (_groupSize < 1) exitWith {};
+
 			_group = createGroup SC_BanditSide;
 			_group setVariable ["DMS_AllowFreezing",false];
 			_group setVariable ["DMS_LockLocality",true];
@@ -423,7 +430,6 @@ _livePlayers = _livePlayers call ExileClient_util_array_shuffle; // But Exile ca
 			_selectedPlayer setVariable ["SC_lastHunted",time];
 			SC_liveRandomGroups = SC_liveRandomGroups + [_group];
 			
-			_groupSize = random [SC_randomSpawnMinGroupSize, SC_randomSpawnMinGroupSize+(SC_randomSpawnMaxGroupSize-SC_randomSpawnMinGroupSize)/2, SC_randomSpawnMaxGroupSize]; 
 			for "_i" from 1 to _groupSize do
 			{
 				_loadOut = ["cops"] call SC_fnc_selectGear;

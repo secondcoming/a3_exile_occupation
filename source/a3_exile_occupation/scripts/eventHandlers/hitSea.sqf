@@ -1,5 +1,4 @@
 _boat = _this select 0;
-_boat removeAllMPEventHandlers  "mphit";
 
 _boatDamage 		= damage _boat;
 _boatPosition 		= getPosATL _boat;
@@ -40,6 +39,7 @@ _damagedEssentials = 0;
 
 if(_boatDamage > 0.2 && _damagedEssentials > 0 && !_crewEjected && _ejectChance > 100) then
 {
+	["seaEject", _boat, format ["damage=%1 essentials=%2 chance=%3", _boatDamage, _damagedEssentials, _ejectChance]] call SC_fnc_logLifecycle;
 	_target = _this select 1;
 	[_boat, _target] spawn 
 	{
@@ -75,9 +75,4 @@ if(_boatDamage > 0.2 && _damagedEssentials > 0 && !_crewEjected && _ejectChance 
         _group2 setCombatMode "RED";	
 	};
 	_boat setVariable ["SC_crewEjected", true,true];
-		
 };
-	
-
-
-_boat addMPEventHandler ["mphit", "_this call SC_fnc_boatHit;"];

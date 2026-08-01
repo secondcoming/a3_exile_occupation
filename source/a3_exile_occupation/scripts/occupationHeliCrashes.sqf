@@ -13,8 +13,10 @@ _logDetail = format['[OCCUPATION:HeliCrashes]::  worldname: %1 crashes to spawn:
 for "_i" from 1 to SC_numberofHeliCrashes do
 {
 	_validspot 	= false;
-	while{!_validspot} do 
+	_attempts = 0;
+	while{!_validspot && _attempts < 20} do
 	{
+		_attempts = _attempts + 1;
 		sleep 0.2;
 		if(SC_occupyHeliCrashesStatic) then
 		{
@@ -32,10 +34,12 @@ for "_i" from 1 to SC_numberofHeliCrashes do
 			_position = [ false, false ] call SC_fnc_findsafePos;
 		};
 		
-		_validspot	= true;
+		_validspot = !(_position isEqualTo []);
 	
 		//Check if near another heli crash site
-		_nearOtherCrash = (nearestObjects [_position,[
+		if(_validspot) then
+		{
+			_nearOtherCrash = (nearestObjects [_position,[
 							// Trucks
 							"Land_Wreck_BMP2_F",
 							"Land_Wreck_HMMWV_F",
@@ -47,14 +51,20 @@ for "_i" from 1 to SC_numberofHeliCrashes do
 							"Land_Wreck_Heli_Attack_02_F",
 							"Land_UWreck_Heli_Attack_02_F",
 							// VTOL
-							"Land_UWreck_MV22_F"],750]) select 0;	
-		if (!isNil "_nearOtherCrash") then { _validspot = false; };
+							"Land_UWreck_MV22_F"],750]) select 0;
+			if (!isNil "_nearOtherCrash") then { _validspot = false; };
 
-		//Check if near another loot crate site
-		_nearOtherCrate = (nearestObjects [_position,["Exile_Container_SupplyBox"],500]) select 0;	
-		if (!isNil "_nearOtherCrate") then { _validspot = false; };
+			//Check if near another loot crate site
+			_nearOtherCrate = (nearestObjects [_position,["Exile_Container_SupplyBox"],500]) select 0;
+			if (!isNil "_nearOtherCrate") then { _validspot = false; };
+		};
 				
 	};	
+	if(!_validspot) then
+	{
+		["safePosSpawnSkipped", objNull, format ["branch=heliCrash index=%1 attempts=%2", _i, _attempts]] call SC_fnc_logLifecycle;
+		continue;
+	};
 	
 	_logDetail = format['[OCCUPATION:HeliCrashes] Crash %1 : Location %2',_i,_position];
     [_logDetail] call SC_fnc_log;

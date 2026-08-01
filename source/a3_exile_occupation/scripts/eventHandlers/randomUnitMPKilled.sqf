@@ -4,8 +4,7 @@ _unit 			= _this select 0;
 _group = group _unit;
 _selectedPlayer = _group getVariable "SC_huntedPlayer";
 
-if((count (units _group)) == 0) then
+if (({alive _x && {!(_x isEqualTo _unit)}} count units _group) == 0) then
 {
-	// Remove the group
-	SC_liveRandomGroups = SC_liveRandomGroups - _group;  
+    SC_liveRandomGroups = SC_liveRandomGroups - [_group];
 };

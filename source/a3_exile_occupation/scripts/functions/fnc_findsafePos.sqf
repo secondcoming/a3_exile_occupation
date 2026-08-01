@@ -17,7 +17,7 @@ if (worldName == 'Esseker') then
 
 if (worldName == 'Chernarus') then 
 { 
-	_maxDist = _middle - 1500;
+	_maxDist = _middle - 1500;;
 };
 
 if(_roadSpawn) then
@@ -36,10 +36,13 @@ else
 };
 
 _validspot	= false;
+private _attempts = 0;
+private _maxAttempts = 30;
 
-while{!_validspot} do 
+while{!_validspot && _attempts < _maxAttempts} do
 {
-	sleep 1;
+	_attempts = _attempts + 1;
+	sleep 0.1;
     _tempPosition = [_pos,0,_maxDist,15,_inWater,20,0] call BIS_fnc_findSafePos;
     _position = [_tempPosition select 0, _tempPosition select 1, 0];
     _validspot = true;
@@ -79,4 +82,10 @@ while{!_validspot} do
     if (isNil "_validspot") then { _validspot	= false; };   
 };
 
-_position	
+if(!_validspot) exitWith
+{
+	["safePosFailed", objNull, format ["road=%1 water=%2 attempts=%3 center=%4 maxDist=%5", _roadSpawn, _waterSpawn, _attempts, _pos, _maxDist]] call SC_fnc_logLifecycle;
+	[]
+};
+
+_position

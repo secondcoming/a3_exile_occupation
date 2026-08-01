@@ -1,5 +1,5 @@
 _heli = _this select 0;
-_heli removeAllMPEventHandlers  "mphit";
+if (_heli getVariable ["SC_airDisabled", false]) exitWith {};
 _heliDamage = getDammage _heli;
 _heliPosition = getPosATL _heli;
 _heliHeight = getPosATL _heli select 2;
@@ -42,6 +42,7 @@ _damagedEssentials = 0;
 
 if((_heliDamage > 0.2 OR _damagedEssentials > 0) && !_crewEjected && _ejectChance > 100) then
 {
+	["airEject", _heli, format ["damage=%1 essentials=%2 chance=%3", _heliDamage, _damagedEssentials, _ejectChance]] call SC_fnc_logLifecycle;
 	_target = _this select 1;
 	[_heli, _target] spawn 
 	{
@@ -83,13 +84,15 @@ if((_heliDamage > 0.2 OR _damagedEssentials > 0) && !_crewEjected && _ejectChanc
 
 if(_heliDamage > 0.7 && _damagedEssentials > 0) then
 {
+	_heli setVariable ["SC_airDisabled", true, true];
+	["airForceLand", _heli, format ["damage=%1 essentials=%2", _heliDamage, _damagedEssentials]] call SC_fnc_logLifecycle;
 	if(SC_extendedLogging) then 
 	{ 
 		_logDetail = format ["[OCCUPATION:Sky]:: Air unit %2 damaged and force landing at %3 (time: %1)",time,_this select 0,_this select 1,_heliPosition];
 		[_logDetail] call SC_fnc_log;
 	};
     
-    [_heli] call SC_fnc_vehicleDestroyed;
+    [_heli, "airForceLanded"] call SC_fnc_vehicleDestroyed;
     _currentHeliPos = getPos _heli;
     _destination = [_currentHeliPos, 1, 150, 10, 0, 20, 0] call BIS_fnc_findSafePos;
 	_heli setVehicleLock "UNLOCKED";
@@ -101,7 +104,7 @@ if(_heliDamage > 0.7 && _damagedEssentials > 0) then
     _heli land "LAND";
     _group2 = createGroup east;
     {
-        _x join _group2;
+        [(_x select 0)] join _group2;
     } forEach (fullCrew _heli);
 
 	_group2 allowFleeing 0;
@@ -116,9 +119,4 @@ if(_heliDamage > 0.7 && _damagedEssentials > 0) then
 	[_group2, _destination, 250] call bis_fnc_taskPatrol;
     _group2 setBehaviour "COMBAT";
     _group2 setCombatMode "RED";
-};
-
-if(_heliDamage <= 0.2 && _damagedEssentials == 0) then
-{
-	_heli addMPEventHandler ["mphit", "_this call SC_fnc_hitAir;"];
 };

@@ -13,6 +13,12 @@ if(_side == "survivor") then { _currentSide = SC_SurvivorSide };
 	_currentStatic = _x;
 	_spawnPosition = _currentStatic select 0;
 	_aiCount = _currentStatic select 1;
+	if (!SC_staticIgnoreAICount) then
+	{
+		private _maxAIcount = SC_maxAIcount - ((count playableUnits - SC_scaleAI) max 0);
+		_aiCount = _aiCount min ((_maxAIcount - ({ !isPlayer _x } count allUnits)) max 0);
+	};
+	if (_aiCount < 1) exitWith {};
 	_radius = _currentStatic select 2;
 	_staticSearch = _currentStatic select 3;
 	

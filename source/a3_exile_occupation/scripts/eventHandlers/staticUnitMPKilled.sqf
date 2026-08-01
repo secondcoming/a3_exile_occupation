@@ -7,7 +7,7 @@ _unit removeAllMPEventHandlers  "mphit";
 
 _group = group _unit;
 
-if((count (units _group)) == 0) then
+if (({alive _x && {!(_x isEqualTo _unit)}} count units _group) == 0) then
 {
     SC_liveStaticGroups = SC_liveStaticGroups - [_staticUID,_spawnPosition]; 
     if(SC_mapMarkers) then 

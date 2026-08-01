@@ -44,6 +44,7 @@ SC_occupationVersion = getText (configFile >> "CfgPatches" >> "a3_exile_occupati
        
           
     SC_fnc_driverKilled 			= compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\eventHandlers\driverKilled.sqf";
+    SC_fnc_vehicleCrewKilled        = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\eventHandlers\vehicleCrewKilled.sqf";
     SC_fnc_vehicleDestroyed     	= compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\eventHandlers\vehicleDestroyed.sqf";
 
     SC_fnc_getIn			    	= compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\eventHandlers\getIn.sqf";
@@ -66,6 +67,8 @@ SC_occupationVersion = getText (configFile >> "CfgPatches" >> "a3_exile_occupati
     SC_fnc_selectName               = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\functions\fnc_selectName.sqf";
     SC_fnc_spawnstatics				= compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\functions\fnc_spawnStatics.sqf";
     SC_fnc_unstick          	    = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\functions\fnc_unstick.sqf"; 
+    SC_fnc_logLifecycle             = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\functions\fnc_logLifecycle.sqf";
+    SC_fnc_fillVehicleCargo         = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\functions\fnc_fillVehicleCargo.sqf";
 
 
     _logDetail = "=============================================================================================================";

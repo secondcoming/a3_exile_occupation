@@ -1,4 +1,10 @@
-private["_uniform","_vest","_headgear","_weapon","_weaponAttachments","_magazines","_pistol","_pistolAttachments","_assignedItems","_launcher","_backpack"];
+private[
+    "_side", "_uniform", "_vest", "_headgear", "_weapon", "_weaponAttachments", "_magazines",
+    "_pistol", "_pistolAttachments", "_assignedItems", "_launcher", "_backpack", "_amountOfMagazines",
+    "_newMagazine", "_quantity", "_weaponAttachmentsChance", "_pistolAttachmentsChance", "_backpackChance",
+    "_launcherChance", "_weaponMagazinesToAdd", "_weaponMagazineAmount", "_pistolMagazinesToAdd",
+    "_pistolMagazineAmount", "_launcherMagazinesToAdd", "_launcherMagazineAmount", "_loadout", "_logDetail", "_i"
+];
 
 _side	= _this select 0;
 
@@ -130,7 +136,7 @@ _loadout = 	[
 		_vest,					// String | EG: "V_PlateCarrierGL_blk"
 		_backpack				// String | EG: "B_Carryall_oli"
 	];
-   
+
 if(SC_extendedLogging) then 
 { 
     _logDetail = format["[OCCUPATION]:: %2 loadout created: %1",_loadout,_side];

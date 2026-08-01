@@ -12,25 +12,29 @@ SC_liveBoatsArray		= [];
 	
 	if(!isNil "_vehLocation") then
 	{
-		if(_vehicle isKindOf "LandVehicle") then
+		if(_vehicle isKindOf "LandVehicle" && isNil "_transport") then
 		{		
-			SC_liveVehiclesArray pushBack _vehicle; 
+			SC_liveVehiclesArray pushBackUnique _vehicle;
 			SC_liveVehicles = count(SC_liveVehiclesArray);		
 		};
 
 		if(_vehicle isKindOf "Air" && isNil "_transport") then
 		{   
-			SC_liveHelisArray pushBack _vehicle; 
+			SC_liveHelisArray pushBackUnique _vehicle;
 			SC_liveHelis = count(SC_liveHelisArray);
 		};
 
-		if(_vehicle isKindOf "Ship") then
+		if(_vehicle isKindOf "Ship" && isNil "_transport") then
 		{   
-			SC_liveBoatsArray pushBack _vehicle;
-			SC_liveBoatss = count(SC_liveBoatsArray);
+			SC_liveBoatsArray pushBackUnique _vehicle;
+			SC_liveBoats = count(SC_liveBoatsArray);
 		};
 	};
 }forEach vehicles;
+
+private _activeAI = { !isPlayer _x } count allUnits;
+private _effectiveMaxAI = SC_maxAIcount - ((count playableUnits - SC_scaleAI) max 0);
+["monitorReconciled", objNull, format ["worldVehicles=%1 activeAI=%2 maxAI=%3 effectiveMaxAI=%4 tracked=[land:%5,air:%6,sea:%7]", count vehicles, _activeAI, SC_maxAIcount, _effectiveMaxAI, count SC_liveVehiclesArray, count SC_liveHelisArray, count SC_liveBoatsArray]] call SC_fnc_logLifecycle;
 
 SC_liveHelis = count(SC_liveHelisArray);
 {
@@ -41,7 +45,6 @@ SC_liveHelis = count(SC_liveHelisArray);
     sleep 2;
 	_tempLocation = _x getVariable "SC_vehicleSpawnLocation";
 	_originalSpawnLocation = _tempLocation select 0;
-	diag_log format ["[occupationMonitor] _tempLocation: %1 _originalSpawnLocation: %2",_tempLocation,_originalSpawnLocation];
 	_radius = _tempLocation select 1;	
 
 	_pos = position _x;	

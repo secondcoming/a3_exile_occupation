@@ -15,6 +15,7 @@
 
 SC_debug						= false;					// set to true to turn on debug features (not recommended for live servers)
 SC_extendedLogging          	= false;                	// set to true for additional 
+SC_lifecycleDiagnostics       = false;                    // detailed vehicle, crew and spawn lifecycle logging for troubleshooting
 SC_infiSTAR_log					= true;						// true Use infiSTAR logging, false logs to server rpt
 
 SC_useApexClasses           	= true;                 	// true if you want to use the Apex class list over rides, false to use vanilla Arma gear
@@ -252,6 +253,23 @@ SC_minimumCrewAmount        	= 2;     	// Minimum amount of AI allowed in a vehi
 SC_maximumCrewAmount        	= 5;     	// Maximum amount of AI allowed in a vehicle
 											// (essential crew like drivers and gunners will always spawn regardless of these settings)
 
+// Shared random cargo for roaming land, air and sea vehicles. Keep these arrays empty to disable cargo.
+SC_occupyVehicleCargoItems    = [
+                                    "HandGrenade",
+                                    "ItemGPS",
+                                    "Exile_Item_InstaDoc",
+                                    "Exile_Item_PlasticBottleFreshWater",
+                                    "Exile_Item_EMRE"
+                                ];
+SC_occupyVehicleCargoWeapons  = [
+                                    "arifle_MXM_Black_F",
+                                    "arifle_MXM_F",
+                                    "arifle_MX_SW_Black_F",
+                                    "arifle_MX_SW_F",
+                                    "LMG_Mk200_F",
+                                    "LMG_Zafir_F"
+                                ];
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	Roaming Land Vehicle Setup
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,6 +372,15 @@ SC_occupyBoatFixedPositions		= [
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	Occupy Military Setup
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+SC_militaryMaxGroups           = 8;        // maximum number of active Military groups
+SC_militaryMinGroupSize        = 1;        // minimum units per Military group
+SC_militaryMaxGroupSize        = 3;        // maximum units per Military group
+SC_militarySpawnChance         = 20;       // percentage chance to spawn at each suitable military location
+SC_militaryIgnoreCount         = false;    // true to ignore SC_maxAIcount for Military groups
+SC_militaryFrequency           = 300;      // seconds between Military monitor passes
+SC_militaryMaxGroupsPerCycle   = 2;        // maximum new Military groups created by one monitor pass
+SC_militarySpawnDelay          = 1;        // delay between group spawns to avoid scheduler bursts
 
 // Array of buildings to add military patrols to
 SC_buildings                	= [	"Land_TentHangar_V1_F","Land_Hangar_F","Land_Airport_Tower_F","Land_Cargo_House_V1_F",

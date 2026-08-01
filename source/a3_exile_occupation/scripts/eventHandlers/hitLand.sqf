@@ -2,19 +2,33 @@
 // Attempts to get the current vehicle driver to repair the vehicle
 
 _vehicle 		= _this select 0;
-_repairStatus 	= _vehicle getVariable "SC_repairStatus";
+_repairStatus 	= _vehicle getVariable ["SC_repairStatus", false];
 
-_logDetail = format ["[OCCUPATION:repairVehicle]:: Vehicle %1 _repairStatus %2",_vehicle, _repairStatus]; 
-[_logDetail] call SC_fnc_log;
+if(SC_extendedLogging) then
+{
+	_logDetail = format ["[OCCUPATION:repairVehicle]:: Vehicle %1 _repairStatus %2",_vehicle, _repairStatus];
+	[_logDetail] call SC_fnc_log;
+};
 
-if(_repairStatus) exitWith {};
+if(_repairStatus) exitWith
+{
+	_debounceCount = (_vehicle getVariable ["SC_repairDebounceCount", 0]) + 1;
+	_vehicle setVariable ["SC_repairDebounceCount", _debounceCount];
+	if(SC_lifecycleDiagnostics && {_debounceCount mod 25 == 0}) then
+	{
+		["landRepairDebounced", _vehicle, format ["hits=%1", _debounceCount]] call SC_fnc_logLifecycle;
+	};
+};
 
 // Mark the vehicle as currently being repaired
 _vehicle setVariable ["SC_repairStatus",true,true];
-_vehicle removeAllMPEventHandlers  "mphit";
+_vehicle setVariable ["SC_repairDebounceCount", 0];
 
-_logDetail = format ["[OCCUPATION:repairVehicle]:: Starting repair check Vehicle %1 _repairStatus %2",_vehicle, _repairStatus]; 
-[_logDetail] call SC_fnc_log;
+if(SC_extendedLogging) then
+{
+	_logDetail = format ["[OCCUPATION:repairVehicle]:: Starting repair check Vehicle %1 _repairStatus %2",_vehicle, _repairStatus];
+	[_logDetail] call SC_fnc_log;
+};
 
 _vehicleDamage 		= damage _vehicle;
 _damagedWheels 		= 0;
@@ -50,9 +64,13 @@ if(isNil "_assignedDriver") then
     _assignedDriver disableAI "SUPPRESSION";                   
     _assignedDriver assignAsDriver _vehicle;
     _assignedDriver moveInDriver _vehicle;                
-    _assignedDriver setVariable ["DMS_AssignedVeh",_vehicle];
     _assignedDriver setVariable ["SC_drivenVehicle", _vehicle,true]; 
-    _assignedDriver addMPEventHandler ["mpkilled", "_this call SC_fnc_driverKilled;"];
+    _driverKilledEH = _assignedDriver getVariable ["SC_driverKilledEH", -1];
+    if (_driverKilledEH < 0) then
+    {
+        _driverKilledEH = _assignedDriver addMPEventHandler ["mpkilled", "_this call SC_fnc_driverKilled;"];
+        _assignedDriver setVariable ["SC_driverKilledEH", _driverKilledEH];
+    };
     _vehicle setVariable ["SC_assignedDriver", _assignedDriver,true];  
 };
 
@@ -85,7 +103,7 @@ if ((_vehicle getHitPointDamage "HitFuel") > 0) then { _fueltankDamage = true; }
 
 if(_wheelDamage OR _engineDamage OR _fueltankDamage) then
 {
-
+	["landRepairStart", _vehicle, format ["damage=%1 wheel=%2 engine=%3 fuel=%4", _vehicleDamage, _wheelDamage, _engineDamage, _fueltankDamage]] call SC_fnc_logLifecycle;
 
 	[_vehicle,_assignedDriver ] spawn 
 	{
@@ -149,7 +167,7 @@ if(_wheelDamage OR _engineDamage OR _fueltankDamage) then
 		_driver enableAI "FSM";	
 		// Mark the vehicle as not currently being repaired and reapply the mphit eventhandler
 		_vehicle setVariable ["SC_repairStatus",false,true];
-		_vehicle addMPEventHandler ["mphit", "_this call SC_fnc_hitLand;"];
+		["landRepairFinished", _vehicle, format ["driverAlive=%1 damage=%2", alive _driver, damage _vehicle]] call SC_fnc_logLifecycle;
 	};
 	
 }
@@ -157,10 +175,27 @@ else
 {
 	// Mark the vehicle as not currently being repaired
 	_vehicle setVariable ["SC_repairStatus",false,true];	
-	_logDetail = format ["[OCCUPATION:repairVehicle]:: Not enough damage to disable %2, driver is %3 at %1",time,_vehicle,_assignedDriver]; 
-	[_logDetail] call SC_fnc_log;
-	//_vehicle addMPEventHandler ["mphit", "_this call SC_fnc_hitLand;"];
+	if(SC_extendedLogging) then
+	{
+		_logDetail = format ["[OCCUPATION:repairVehicle]:: Not enough damage to disable %2, driver is %3 at %1",time,_vehicle,_assignedDriver];
+		[_logDetail] call SC_fnc_log;
+	};
+	if(SC_lifecycleDiagnostics) then
+	{
+		_skippedCount = (_vehicle getVariable ["SC_repairSkippedCount", 0]) + 1;
+		_lastSkippedLog = _vehicle getVariable ["SC_lastRepairSkippedLog", -5];
+		_vehicle setVariable ["SC_repairSkippedCount", _skippedCount];
+		if((time - _lastSkippedLog) >= 5) then
+		{
+			["landRepairSkipped", _vehicle, format ["damage=%1 events=%2", _vehicleDamage, _skippedCount]] call SC_fnc_logLifecycle;
+			_vehicle setVariable ["SC_repairSkippedCount", 0];
+			_vehicle setVariable ["SC_lastRepairSkippedLog", time];
+		};
+	};
 };
 _repairStatus 	= _vehicle getVariable "SC_repairStatus";
-_logDetail = format ["[OCCUPATION:repairVehicle]:: Finished mphit eventhandler for Vehicle %1 _repairStatus %2",_vehicle, _repairStatus]; 
-[_logDetail] call SC_fnc_log;
+if(SC_extendedLogging) then
+{
+	_logDetail = format ["[OCCUPATION:repairVehicle]:: Finished mphit eventhandler for Vehicle %1 _repairStatus %2",_vehicle, _repairStatus];
+	[_logDetail] call SC_fnc_log;
+};

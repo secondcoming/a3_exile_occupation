@@ -1,4 +1,22 @@
 =================================================================================
+V72 (01-08-2026)
+=================================================================================
+Stabilised roaming land, air and sea vehicle lifecycle handling, including
+locality-safe event handlers, crew tracking, cleanup and respawn accounting.
+
+Fixed Military patrol spawning so units receive independent Occupation loadouts,
+spawn at separated positions and respect configurable group and AI limits.
+
+Added bounded vehicle-class and safe-position searches so a bad class list or a
+crowded map cannot leave an Occupation worker looping forever.
+
+Moved roaming vehicle cargo into shared configurable item and weapon arrays used
+by land vehicles, aircraft and boats.
+
+Improved stuck-vehicle recovery, static/random group accounting and optional
+lifecycle diagnostics.
+
+=================================================================================
 V65 (30-08-2016)
 =================================================================================
 Tweaks to the randomspawn AI to try to get them to search buildings if you hide 
