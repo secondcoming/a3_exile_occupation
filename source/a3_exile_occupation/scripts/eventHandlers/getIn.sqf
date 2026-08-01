@@ -6,13 +6,18 @@ _unit		= _this select 2;
 
 if(isPlayer _unit) then
 {
+	["playerGetIn", _vehicle, format ["player=%1", _unit]] call SC_fnc_logLifecycle;
 	_group = group _vehicle;
 	{
 		if(!alive _x) then { _x action ["EJECT", _vehicle]; };     
 	}forEach units _group; 
 
 	_vehicle setVariable ["SC_vehicleSpawnLocation", nil,true];
-    [_vehicle]  call SC_fnc_vehicleDestroyed;
+	_vehicle setVariable ["SC_assignedDriver", nil,true];
+	_vehicle setVehicleLock "UNLOCKED";
+	_vehicle lock 1;
+	_vehicle setVariable ["ExileIsLocked", 0, true];
+    [_vehicle, "playerClaimed"] call SC_fnc_vehicleDestroyed;
 
 	if(SC_extendedLogging) then 
 	{
@@ -45,9 +50,13 @@ else
 		_assignedDriver disableAI "SUPPRESSION";                   
 		_assignedDriver assignAsDriver _vehicle;
 		_assignedDriver moveInDriver _vehicle;                
-		_assignedDriver setVariable ["DMS_AssignedVeh",_vehicle];
 		_assignedDriver setVariable ["SC_drivenVehicle", _vehicle,true]; 
-		_assignedDriver addMPEventHandler ["mpkilled", "_this call SC_fnc_driverKilled;"];
+		_driverKilledEH = _assignedDriver getVariable ["SC_driverKilledEH", -1];
+		if (_driverKilledEH < 0) then
+		{
+			_driverKilledEH = _assignedDriver addMPEventHandler ["mpkilled", "_this call SC_fnc_driverKilled;"];
+			_assignedDriver setVariable ["SC_driverKilledEH", _driverKilledEH];
+		};
 		_vehicle setVariable ["SC_assignedDriver", _assignedDriver,true];
 		
 	};

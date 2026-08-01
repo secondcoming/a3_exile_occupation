@@ -1,11 +1,12 @@
 // Triggered if an AI unit leaves an AI vehicle
 
-_unit	 = _this select 0;
-_vehicle = _this select 2;
+_vehicle = _this select 0;
+_unit	 = _this select 2;
 _driver = _vehicle getVariable "SC_assignedDriver";
 _arrowClass = "Sign_Arrow_F"; 
 
 if(!alive _unit) exitWith {};
+
 
 if(side _unit == SC_SurvivorSide) then 
 {

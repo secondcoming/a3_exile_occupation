@@ -22,7 +22,7 @@ if(diag_fps < SC_minFPS) exitWith
 
 //_aiActive = {alive _x && (side _x == SC_BanditSide OR side _x == SC_SurvivorSide)} count allUnits;
 _aiActive = { !isPlayer _x } count allunits;
-if((_aiActive > _maxAIcount) && !SC_occupySeaVehicleIgnoreCount) exitWith
+if((_aiActive >= _maxAIcount) && !SC_occupySeaVehicleIgnoreCount) exitWith
 { 
     _logDetail = format ["[OCCUPATION:Sea]:: %1 active AI, so not spawning AI this time",_aiActive]; 
     [_logDetail] call SC_fnc_log; 
@@ -46,6 +46,7 @@ _maxDistance = _middle;
 
 for "_i" from 1 to _vehiclesToSpawn do
 {
+	if (!SC_occupySeaVehicleIgnoreCount && {({ !isPlayer _x } count allUnits) >= _maxAIcount}) exitWith {};
 	if (_vehiclesToSpawn > 0) then
 	{
 		private["_group"];
@@ -91,22 +92,24 @@ for "_i" from 1 to _vehiclesToSpawn do
 		[_group,false] call DMS_fnc_FreezeToggle;
 		_group setVariable ["DMS_LockLocality",true];
 		_group setVariable ["DMS_SpawnedGroup",true];
-		_group setVariable ["DMS_Group_Side", SC_BanditSide];  
-		_VehicleClass = SC_BoatClassToUse call BIS_fnc_selectRandom;
-		_VehicleClassToUse = _VehicleClass select 0; 
-
-		boatOkToSpawn = false;
-		while{!boatOkToSpawn} do
+		_group setVariable ["DMS_Group_Side", SC_BanditSide];
+		_group setVariable ["Vcm_Disable",true,true];
+		_availableVehicleClasses = SC_BoatClassToUse select
 		{
-			_VehicleClass = SC_BoatClassToUse call BIS_fnc_selectRandom;
-			_VehicleClassToUse = _VehicleClass select 0;
-			_VehicleClassAllowedCount = _VehicleClass select 1;
-			_vehicleCount = 0;
-			{
-				if(_VehicleClassToUse == typeOf _x) then { _vehicleCount = _vehicleCount + 1; };    
-			}forEach SC_liveHelisArray;
-			if(_vehicleCount < _VehicleClassAllowedCount OR _VehicleClassAllowedCount == 0) then { boatOkToSpawn = true; };
-		};       
+			private _candidate = _x;
+			private _allowedCount = _candidate select 1;
+			private _currentCount = { typeOf _x == (_candidate select 0) } count SC_liveBoatsArray;
+			_allowedCount == 0 OR _currentCount < _allowedCount
+		};
+		if(_availableVehicleClasses isEqualTo []) then
+		{
+			["spawnPoolExhausted", objNull, format ["branch=sea pool=%1", count SC_BoatClassToUse]] call SC_fnc_logLifecycle;
+			deleteGroup _group;
+			continue;
+		};
+		_VehicleClass = selectRandom _availableVehicleClasses;
+		_VehicleClassToUse = _VehicleClass select 0;
+		["spawnPoolSelected", objNull, format ["branch=sea class=%1 available=%2", _VehicleClassToUse, count _availableVehicleClasses]] call SC_fnc_logLifecycle;
 
 		_vehicle = createVehicle [_VehicleClassToUse, _spawnLocation, [], 0, "NONE"];
 		
@@ -124,7 +127,7 @@ for "_i" from 1 to _vehiclesToSpawn do
 			_vehicle removeWeaponTurret  ["GMG_40mm",[0]];
 
 			SC_liveBoats = SC_liveBoats + 1;
-			SC_liveBoatsArray = SC_liveBoatsArray + [_vehicle];
+			SC_liveBoatsArray pushBackUnique _vehicle;
 
 			_vehicle setVehiclePosition [_spawnLocation, [], 0, "NONE"];
 			_vehicle setVariable ["vehicleID", _spawnLocation, true];  
@@ -135,6 +138,8 @@ for "_i" from 1 to _vehiclesToSpawn do
 			_vehicle setVehicleLock "UNLOCKED";
 			_vehicle setVariable ["ExileIsLocked", 0, true];
 			_vehicle setVariable ["ExileIsPersistent", false];
+			_vehicle setVariable ["SC_claimReady", false, true];
+			["seaSpawn", _vehicle, format ["class=%1 spawn=%2 radius=%3", _VehicleClassToUse, _spawnLocation, _radius]] call SC_fnc_logLifecycle;
 			_vehicle action ["LightOn", _vehicle];
 			// Limit boat speed to help stop beaching
 			_vehicle setSpeedMode "LIMITED";
@@ -147,7 +152,11 @@ for "_i" from 1 to _vehiclesToSpawn do
 			if(SC_maximumCrewAmount > SC_minimumCrewAmount) then 
 			{ 
 				_crewRequired = floor(random[SC_minimumCrewAmount,SC_maximumCrewAmount-SC_minimumCrewAmount,SC_maximumCrewAmount]); 
-			};       
+			};
+			if (!SC_occupySeaVehicleIgnoreCount) then
+			{
+				_crewRequired = _crewRequired min ((_maxAIcount - ({ !isPlayer _x } count allUnits)) max 0);
+			};
 			_amountOfCrew = 0;
 			_unitPlaced = false;
 			_vehicleRoles = (typeOf _vehicle) call bis_fnc_vehicleRoles;
@@ -157,28 +166,28 @@ for "_i" from 1 to _vehiclesToSpawn do
 				_vehicleSeat = _x select 1;
 				if(_vehicleRole == "Driver") then
 				{
-					_unit = [_group,_spawnLocation,"assault","random","bandit","Vehicle"] call DMS_fnc_SpawnAISoldier;           
+					_loadOut = ["bandit"] call SC_fnc_selectGear;
+					_unit = [_group,_spawnLocation,"custom","random","bandit","Vehicle",_loadOut] call DMS_fnc_SpawnAISoldier;
 					_amountOfCrew = _amountOfCrew + 1;  
 					_unit assignAsDriver _vehicle;
 					_unit moveInDriver _vehicle;
-					_unit setVariable ["DMS_AssignedVeh",_vehicle]; 
 					_unitPlaced = true;
 				};
 				if(_vehicleRole == "Turret") then
 				{
-					_unit = [_group,_spawnLocation,"assault","random","bandit","Vehicle"] call DMS_fnc_SpawnAISoldier;         
+					_loadOut = ["bandit"] call SC_fnc_selectGear;
+					_unit = [_group,_spawnLocation,"custom","random","bandit","Vehicle",_loadOut] call DMS_fnc_SpawnAISoldier;
 					_amountOfCrew = _amountOfCrew + 1;   
 					_unit moveInTurret [_vehicle, _vehicleSeat];
-					_unit setVariable ["DMS_AssignedVeh",_vehicle]; 
 					_unitPlaced = true;
 				};
 				if(_vehicleRole == "CARGO" && _amountOfCrew < _crewRequired) then
 				{
-					_unit = [_group,_spawnLocation,"assault","random","bandit","Vehicle"] call DMS_fnc_SpawnAISoldier;           
+					_loadOut = ["bandit"] call SC_fnc_selectGear;
+					_unit = [_group,_spawnLocation,"custom","random","bandit","Vehicle",_loadOut] call DMS_fnc_SpawnAISoldier;
 					_amountOfCrew = _amountOfCrew + 1;  
 					_unit assignAsCargo _vehicle; 
 					_unit moveInCargo _vehicle;
-					_unit setVariable ["DMS_AssignedVeh",_vehicle];
 					_unitPlaced = true; 
 				};  
 
@@ -197,68 +206,30 @@ for "_i" from 1 to _vehiclesToSpawn do
 				[_unit] joinSilent _group;
 			}foreach units _group;
 
+			private _linkedAI = units _group;
+			_vehicle setVariable ["SC_linkedAI", _linkedAI, true];
+			_vehicle setVariable ["SC_vehicleSpawnLocationReleased", false, true];
+			{
+				_x setVariable ["SC_linkedVehicle", _vehicle, true];
+				_x addMPEventHandler ["mpkilled", "_this call SC_fnc_vehicleCrewKilled;"];
+			} forEach _linkedAI;
+
 			if(SC_infiSTAR_log) then 
 			{ 
 				_logDetail = format['[OCCUPATION:Sea] %1 spawned @ %2',_VehicleClassToUse,_spawnLocation];	
 				[_logDetail] call SC_fnc_log;
 			};
-
-			
-			clearMagazineCargoGlobal _vehicle;
-			clearWeaponCargoGlobal _vehicle;
-			clearItemCargoGlobal _vehicle;
-
-			_vehicle addMagazineCargoGlobal ["HandGrenade", (random 2)];
-			_vehicle addItemCargoGlobal ["ItemGPS", (random 1)];
-			_vehicle addItemCargoGlobal ["Exile_Item_InstaDoc", (random 1)];
-			_vehicle addItemCargoGlobal ["Exile_Item_PlasticBottleFreshWater", 2 + (random 2)];
-			_vehicle addItemCargoGlobal ["Exile_Item_EMRE", 2 + (random 2)];
-			
-			// Add weapons with ammo to the vehicle
-			_possibleWeapons = 
-			[			
-				"arifle_MXM_Black_F",
-				"arifle_MXM_F",
-				"srifle_DMR_01_F",
-				"srifle_DMR_02_camo_F",
-				"srifle_DMR_02_F",
-				"srifle_DMR_02_sniper_F",
-				"srifle_DMR_03_F",
-				"srifle_DMR_03_khaki_F",
-				"srifle_DMR_03_multicam_F",
-				"srifle_DMR_03_tan_F",
-				"srifle_DMR_03_woodland_F",
-				"srifle_DMR_04_F",
-				"srifle_DMR_04_Tan_F",
-				"srifle_DMR_05_blk_F",
-				"srifle_DMR_05_hex_F",
-				"srifle_DMR_05_tan_f",
-				"srifle_DMR_06_camo_F",
-				"srifle_DMR_06_olive_F",
-				"srifle_EBR_F",
-				"srifle_GM6_camo_F",
-				"srifle_GM6_F",
-				"srifle_LRR_camo_F",
-				"srifle_LRR_F"
-			];
-			_amountOfWeapons = 1 + (random 3);
-			
-			for "_i" from 1 to _amountOfWeapons do
-			{
-				_weaponToAdd = _possibleWeapons call BIS_fnc_selectRandom;
-				_vehicle addWeaponCargoGlobal [_weaponToAdd,1];
-			
-				_magazinesToAdd = getArray (configFile >> "CfgWeapons" >> _weaponToAdd >> "magazines");
-				_vehicle addMagazineCargoGlobal [(_magazinesToAdd select 0),round random 3];
-			};
+			[_vehicle] call SC_fnc_fillVehicleCargo;
 
 			
 			[_group, _spawnLocation, _radius] call bis_fnc_taskPatrol;
 			_group setBehaviour "AWARE";
 			_group setCombatMode "RED";
-			_vehicle addEventHandler ["getin", "_this call SC_fnc_claimVehicle;"];	
+			_vehicle addEventHandler ["getin", "_this call SC_fnc_getIn;"];
 			_vehicle addMPEventHandler ["mpkilled", "_this call SC_fnc_vehicleDestroyed;"];
-			_vehicle addMPEventHandler ["mphit", "_this call SC_fnc_hitSea;"];
+			_hitSeaEH = _vehicle addMPEventHandler ["mphit", "_this call SC_fnc_hitSea;"];
+			_vehicle setVariable ["SC_hitSeaEH", _hitSeaEH];
+			["seaHitHandlerReady", _vehicle, format ["handler=%1", _hitSeaEH]] call SC_fnc_logLifecycle;
 			_vehicle setVariable ["SC_crewEjected", false,true];	
 			sleep 0.2;               
 		}

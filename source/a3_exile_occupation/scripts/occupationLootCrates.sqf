@@ -10,8 +10,10 @@ private _position = [0,0,0];
 for "_i" from 1 to SC_numberofLootCrates do
 {
 	_validspot 	= false;
-	while{!_validspot} do 
+	_attempts = 0;
+	while{!_validspot && _attempts < 20} do
 	{
+		_attempts = _attempts + 1;
 		sleep 0.2;
 		if(SC_occupyLootCratesStatic) then
 		{
@@ -29,12 +31,20 @@ for "_i" from 1 to SC_numberofLootCrates do
 			_position = [ false, false ] call SC_fnc_findsafePos;
 		};
 		
-		_validspot	= true;
+		_validspot = !(_position isEqualTo []);
 		
 		//Check if near another crate site
-		_nearOtherCrate = (nearestObjects [_position,["Exile_Container_SupplyBox"],500]) select 0;	
-		if (!isNil "_nearOtherCrate") then { _validspot = false; };			
+		if(_validspot) then
+		{
+			_nearOtherCrate = (nearestObjects [_position,["Exile_Container_SupplyBox"],500]) select 0;
+			if (!isNil "_nearOtherCrate") then { _validspot = false; };
+		};
 	};	
+	if(!_validspot) then
+	{
+		["safePosSpawnSkipped", objNull, format ["branch=lootCrate index=%1 attempts=%2", _i, _attempts]] call SC_fnc_logLifecycle;
+		continue;
+	};
 	
 	_mapMarkerName = format ["SC_loot_marker_%1", _i];
 	

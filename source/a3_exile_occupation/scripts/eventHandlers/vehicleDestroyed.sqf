@@ -1,37 +1,21 @@
 _vehicle = _this select 0;
+private _reason = "destroyed";
+if ((count _this) > 1 && {(_this select 1) isEqualType ""}) then
+{
+	_reason = _this select 1;
+};
+[_reason + "Before", _vehicle] call SC_fnc_logLifecycle;
 _vehicle setVariable ["SC_vehicleSpawnLocation", nil,true];
 if((damage _vehicle) < 1) then
 {
 	_vehicle removeAllMPEventHandlers  "mphit";
 };
 
-SC_liveVehiclesArray 	= [];
-SC_liveHelisArray		= [];
-SC_liveBoatsArray		= [];
+SC_liveVehiclesArray = SC_liveVehiclesArray - [_vehicle];
+SC_liveHelisArray = SC_liveHelisArray - [_vehicle];
+SC_liveBoatsArray = SC_liveBoatsArray - [_vehicle];
+SC_liveVehicles = count SC_liveVehiclesArray;
+SC_liveHelis = count SC_liveHelisArray;
+SC_liveBoats = count SC_liveBoatsArray;
 
-{
-	_vehicle		= _x;
-	_vehLocation 	= _x getVariable "SC_vehicleSpawnLocation";
-	_transport 		= _x getVariable "SC_transport";
-
-	if(!isNil "_vehLocation") then
-	{
-		if(_vehicle isKindOf "LandVehicle") then
-		{		
-			SC_liveVehiclesArray pushBack _vehicle; 
-			SC_liveVehicles = count(SC_liveVehiclesArray);		
-		};
-
-		if(_vehicle isKindOf "Air" && isNil "_transport") then
-		{   
-			SC_liveHelisArray pushBack _vehicle; 
-			SC_liveHelis = count(SC_liveHelisArray);
-		};
-
-		if(_vehicle isKindOf "Ship") then
-		{   
-			SC_liveBoatsArray pushBack _vehicle;
-			SC_liveBoatss = count(SC_liveBoatsArray);
-		};
-	};
-}forEach vehicles;
+[_reason + "After", _vehicle] call SC_fnc_logLifecycle;

@@ -53,7 +53,7 @@ if(SC_occupyMilitary) then
 		_foundBuilding = _areaToScan nearObjects [_currentBuilding, _maxDistance];
 		{
 			_pos = position _x;
-			SC_completeMilitaryList pushBack _foundBuilding;
+			SC_completeMilitaryList pushBack [_x];
 			_logDetail = format ["[OCCUPATION Military]:: Added building: %1 (object: %3) found at location: %2 @ ",_currentBuilding,_pos,_x];
 			[_logDetail] call SC_fnc_log;	
 		}forEach _foundBuilding;
@@ -62,9 +62,8 @@ if(SC_occupyMilitary) then
 		
 	_logDetail = format ["[OCCUPATION Military]:: Ended building scan @ ",time];
 	[_logDetail] call SC_fnc_log;
-	
 	fnc_occupationMilitary = compile preprocessFileLineNumbers "\x\addons\a3_exile_occupation\scripts\occupationMilitary.sqf";
-	[SC_refreshTime, fnc_occupationMilitary, [], true] call ExileServer_system_thread_addTask;
+	[SC_militaryFrequency, fnc_occupationMilitary, [], true] call ExileServer_system_thread_addTask;
 };
 
 if(SC_occupyRandomSpawn) then

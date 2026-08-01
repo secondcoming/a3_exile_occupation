@@ -36,7 +36,7 @@ if(diag_fps < _minFPS) exitWith
 
 _aiActive = { !isPlayer _x } count allunits;
 
-if(_aiActive > _maxAIcount) exitWith 
+if(_aiActive >= _maxAIcount) exitWith
 { 
     if(SC_extendedLogging) then 
     { 
@@ -133,6 +133,8 @@ _locations = (nearestLocations [_spawnCenter, ["NameVillage","NameCity", "NameCi
 			if(_locationType isEqualTo "NameVillage") then      { _aiCount = 1 + (round (random 2)); _groupRadius = 100; };
 				
 			if(_aiCount < 1) then { _aiCount = 1; };
+			_aiCount = _aiCount min ((_maxAIcount - ({ !isPlayer _x } count allUnits)) max 0);
+			if (_aiCount < 1) exitWith {};
 			_difficulty = "random";
 			
 			//_safeSpawnPosition = [_pos,10,100,5,0,20,0] call BIS_fnc_findSafePos;	
